@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "AKME GPT",
+  "version": "1.0",
+  "description": "AI assistant for Wazzup24",
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "*://web.wazzup24.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["*://web.wazzup24.com/*"],
+      "js": ["content.js"],
+      "css": ["styles.css"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  }
+}
