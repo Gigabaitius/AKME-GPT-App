@@ -1,0 +1,8 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+## [Unreleased]
+- Initial log.
+- Fixed chat window jumping to top and clearing input during GPT training.
+  Messages now stay visible and chat auto-scrolls to the latest reply.
