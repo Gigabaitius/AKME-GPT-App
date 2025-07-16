@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Menu, 
   X, 
@@ -266,6 +266,8 @@ const AKME_GPT = () => {
     const [inputMessage, setInputMessage] = useState('');
     const [taskDescription, setTaskDescription] = useState('');
     const [smsTemplate, setSmsTemplate] = useState('');
+    const chatContainerRef = useRef(null);
+    const inputRef = useRef(null);
     
     const startTraining = (mode, lessonType = 'conversation') => {
       let initialMessage = '';
@@ -333,6 +335,7 @@ const AKME_GPT = () => {
       }));
 
       setInputMessage('');
+      if (inputRef.current) inputRef.current.focus();
     };
 
     const generateTrainingResponse = (userInput, mode, lessonType) => {
@@ -472,6 +475,12 @@ const AKME_GPT = () => {
         }));
       }
     };
+
+    useEffect(() => {
+      if (chatContainerRef.current) {
+        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      }
+    }, [trainingSession.messages]);
 
     const stopTraining = () => {
       setTrainingSession({
@@ -637,7 +646,7 @@ const AKME_GPT = () => {
               </div>
             </div>
 
-            <div className="flex-1 p-4 overflow-y-auto space-y-4">
+            <div ref={chatContainerRef} className="flex-1 p-4 overflow-y-auto space-y-4">
               {trainingSession.messages.map(message => (
                 <div key={message.id} className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                   <div className={`max-w-[80%] rounded-lg p-3 ${
@@ -731,6 +740,7 @@ const AKME_GPT = () => {
             <div className="p-4 border-t border-gray-700">
               <div className="flex gap-3">
                 <input
+                  ref={inputRef}
                   type="text"
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
