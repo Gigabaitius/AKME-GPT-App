@@ -32,6 +32,17 @@ const AKME_GPT = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [aiChatOpen, setAiChatOpen] = useState(false);
+  const [aiChatMessage, setAiChatMessage] = useState('');
+  const [aiChatMessages, setAiChatMessages] = useState([
+    {
+      id: 1,
+      sender: 'gpt',
+      text: 'Привет! Я готов помочь с ответами кандидатам. Что нужно сделать?',
+      timestamp: new Date().toLocaleTimeString()
+    }
+  ]);
+  const aiChatContainerRef = useRef(null);
+  const aiChatInputRef = useRef(null);
   const [user, setUser] = useState({ name: 'Анна Иванова', avatar: '👩‍💼' });
   
   // Состояние автоматизации
@@ -309,7 +320,7 @@ const AKME_GPT = () => {
       });
     };
 
-    const sendMessage = () => {
+  const sendMessage = () => {
       if (!inputMessage.trim() || !trainingSession.isActive) return;
 
       const userMessage = {
@@ -476,11 +487,17 @@ const AKME_GPT = () => {
       }
     };
 
-    useEffect(() => {
-      if (chatContainerRef.current) {
-        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-      }
-    }, [trainingSession.messages]);
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [trainingSession.messages]);
+
+  useEffect(() => {
+    if (aiChatContainerRef.current) {
+      aiChatContainerRef.current.scrollTop = aiChatContainerRef.current.scrollHeight;
+    }
+  }, [aiChatMessages]);
 
     const stopTraining = () => {
       setTrainingSession({
@@ -820,6 +837,28 @@ const AKME_GPT = () => {
     );
   };
 
+  const sendAiChatMessage = () => {
+    if (!aiChatMessage.trim()) return;
+
+    const userMsg = {
+      id: aiChatMessages.length + 1,
+      sender: 'user',
+      text: aiChatMessage,
+      timestamp: new Date().toLocaleTimeString()
+    };
+
+    const gptMsg = {
+      id: aiChatMessages.length + 2,
+      sender: 'gpt',
+      text: `Спасибо за сообщение: "${aiChatMessage}"`,
+      timestamp: new Date().toLocaleTimeString()
+    };
+
+    setAiChatMessages(prev => [...prev, userMsg, gptMsg]);
+    setAiChatMessage('');
+    if (aiChatInputRef.current) aiChatInputRef.current.focus();
+  };
+
   // Компонент интеграции
   const IntegrationTab = () => (
     <div className="space-y-6">
@@ -1027,22 +1066,38 @@ const AKME_GPT = () => {
             </button>
           </div>
           
-          <div className="p-4 h-64 overflow-y-auto">
+          <div ref={aiChatContainerRef} className="p-4 h-64 overflow-y-auto">
             <div className="space-y-3">
-              <div className="bg-gray-700 rounded-lg p-3">
-                <p className="text-white text-sm">Привет! Я готов помочь с ответами кандидатам. Что нужно сделать?</p>
-              </div>
+              {aiChatMessages.map(msg => (
+                <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[80%] rounded-lg p-3 ${msg.sender === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-100'}`}>
+                    <div className="flex items-center gap-2 mb-1">
+                      {msg.sender === 'gpt' ? <Bot className="w-4 h-4 text-blue-400" /> : <User className="w-4 h-4 text-blue-200" />}
+                      <span className="text-xs opacity-75">{msg.timestamp}</span>
+                    </div>
+                    <p className="text-sm leading-relaxed whitespace-pre-line">{msg.text}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
           
           <div className="p-4 border-t border-gray-700">
             <div className="flex gap-2">
-              <input 
-                type="text" 
+              <input
+                ref={aiChatInputRef}
+                type="text"
                 placeholder="Напишите сообщение..."
+                value={aiChatMessage}
+                onChange={(e) => setAiChatMessage(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && sendAiChatMessage()}
                 className="flex-1 p-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm"
               />
-              <button className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
+              <button
+                onClick={sendAiChatMessage}
+                disabled={!aiChatMessage.trim()}
+                className="p-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 rounded-lg transition-colors"
+              >
                 <Send className="w-4 h-4 text-white" />
               </button>
             </div>
